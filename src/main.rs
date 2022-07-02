@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use bevy::sprite::collide_aabb::collide;
 use bevy::utils::HashSet;
-use bevy_kira_audio::{Audio, AudioPlugin};
 use components::{
 	Enemy, Explosion, ExplosionTimer, ExplosionToSpawn, FromEnemy, FromPlayer, Laser, Player,
 	SpriteSize,
@@ -43,6 +42,7 @@ const FORMATION_MEMBERS_MAX: u32 = 2;
 const ENEMY_MAX: u32 = 4;
 
 struct EnemyCount(u32);
+struct DeadEnemyCount(u32);
 pub struct WinSize {
 	pub w: f32,
 	pub h: f32,
@@ -88,11 +88,9 @@ fn main() {
 			..Default::default()
 		})
 		.add_plugins(DefaultPlugins)
+		.add_plugin(GameAudioPlugin)
 		.add_plugin(PlayerPlugin)
 		.add_plugin(EnemyPlugin)
-		.add_plugin(GameAudioPlugin)
-		.add_plugin(AudioPlugin)
-		.add_startup_system(play_loop)
 		.add_startup_system(setup_system)
 		.add_system(movable_system)
 		.add_system(player_laser_hit_enemy_system)
@@ -101,9 +99,7 @@ fn main() {
 		.add_system(enemy_laser_hit_player_system)
 		.run();
 }
-fn play_loop(asset_server: Res<AssetServer>, audio: Res<Audio>) {
-	audio.play_looped(asset_server.load("default.ogg"));
-}
+
 fn setup_system(
 	mut commands: Commands,
 	assets_server: Res<AssetServer>,
@@ -194,12 +190,12 @@ fn enemy_laser_hit_player_system(
 fn player_laser_hit_enemy_system(
 	mut commands: Commands,
 	mut enemy_count: ResMut<EnemyCount>,
+	mut dead_enemy_count: ResMut<DeadEnemyCount>,
 	laser_query: Query<(Entity, &Transform, &SpriteSize), (With<Laser>, With<FromPlayer>)>,
 	enemy_query: Query<(Entity, &Transform, &SpriteSize), With<Enemy>>,
 ) {
 	let mut despawned_entities: HashSet<Entity> = HashSet::new();
 
-	///iter
 	for (laser_entity, laser_tf, laser_size) in laser_query.iter() {
 		if despawned_entities.contains(&laser_entity) {
 			continue;
@@ -228,6 +224,7 @@ fn player_laser_hit_enemy_system(
 				commands.entity(enemy_entity).despawn();
 				despawned_entities.insert(enemy_entity);
 				enemy_count.0 -= 1;
+				dead_enemy_count.0 += 1;
 
 				//remover laser atingido
 				commands.entity(laser_entity).despawn();

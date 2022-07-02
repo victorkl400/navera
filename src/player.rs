@@ -2,8 +2,8 @@ use bevy::{core::FixedTimestep, prelude::*};
 
 use crate::{
 	components::{FromPlayer, Laser, Movable, Player, SpriteSize, Velocity},
-	GameTextures, PlayerState, WinSize, BASE_SPEED, PLAYER_LASER_SIZE, PLAYER_LASER_SPRITE,
-	PLAYER_RESPAWN_DELAY, PLAYER_SIZE, SPRITE_SCALE, TIME_STEP,
+	GameTextures, PlayerState, WinSize, PLAYER_LASER_SIZE, PLAYER_RESPAWN_DELAY, PLAYER_SIZE,
+	SPRITE_SCALE,
 };
 
 pub struct PlayerPlugin;
